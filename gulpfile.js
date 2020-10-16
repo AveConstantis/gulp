@@ -15,14 +15,14 @@ let path_file = {
     source_version  : {
         html    : source_folder + '/*.html',
         htmlf   : source_folder + '/html/*.html',
-        styles  : source_folder + '/styles/*.scss',
+        styles  : source_folder + '/styles/main.scss',
+        stylesf : [source_folder + '/styles/*.scss', '!' + source_folder + '/styles/normalize.scss'],
         jscript : source_folder + '/javascript/main.js',
         images  : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
         fonts   : source_folder + '/fonts/*.ttf'
     },
     watch           : {
         html    : source_folder + '/**/*.html',
-        htmlf   : source_folder + '/html/*.html',
         styles  : source_folder + '/styles/**/*.scss',
         jscript : source_folder + '/javascript/**/*.js',
         images  : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
@@ -79,25 +79,22 @@ function browserReload () {
 
 function html () {
     return src(path_file.source_version.html)
-        .pipe(htmlhint('.htmlhintrc.json'))
-        .pipe(htmlhint.reporter())
         .pipe(fileInclude({
             prefix: '@@',
             basepath: '@file'
         }))
         .pipe(dest(path_file.build_version.html))
-        .pipe(dest(path_file.build_version.html))
         .pipe(browsersync.stream())
 }
  
-function htmlfile () {
-    return src(path_file.source_version.htmlf)
+function htmllint () {
+    return src([path_file.source_version.html, path_file.source_version.htmlf])
         .pipe(htmlhint('.htmlhintrc.json'))
         .pipe(htmlhint.reporter())
 }
 
-function styles () {
-    return src(path_file.source_version.styles)
+function csslint () {
+    return src(path_file.source_version.stylesf)
         .pipe(stylelint({
             reporters: [
                 {  
@@ -105,7 +102,19 @@ function styles () {
                     console: true
                 }
             ]
-        }))
+    }))
+}
+
+function jslint () {
+    return src(path_file.source_version.jscript)
+        .pipe(eslint())
+        .pipe(eslint.format())
+}
+
+
+
+function styles () {
+    return src(path_file.source_version.styles)
         .pipe(sass({
             outputStyle : 'expanded'
         }))
@@ -116,7 +125,15 @@ function styles () {
         }))
         .pipe(dest(path_file.build_version.styles))
         .pipe(cleanCss({
-            level: 2
+            level: {
+                1: {
+                    all: true,
+                    normalizeUrls: false
+                },
+                2: {
+                    restructureRules: true
+                }
+            }
         }))
         .pipe(rename({
             suffix : '.min'
@@ -129,8 +146,6 @@ function styles () {
 
 function javascript () {
     return src(path_file.source_version.jscript)
-        .pipe(eslint())
-        .pipe(eslint.format())
         .pipe(webpackStream({
             mode: 'development',
             output: {
@@ -222,19 +237,20 @@ function fonts () {
 
 function watchFiles () { 
     gulp.watch([path_file.watch.html] , html)
-    gulp.watch([path_file.watch.htmlf] , htmlfile)
     gulp.watch([path_file.watch.styles] , styles)
     gulp.watch([path_file.watch.jscript] , javascript)
     gulp.watch([path_file.watch.images] , images)
 }
 
 
-let build = gulp.series(garbageClean,  gulp.parallel(html, htmlfile, styles, javascript, images, fonts));
+let build = gulp.series(garbageClean,  gulp.parallel(html, styles, javascript, images, fonts));
 let watch = gulp.parallel(build, watchFiles, browserReload);
 
 
 exports.html       = html;
-exports.htmlfile   = htmlfile;
+exports.htmllint   = htmllint;
+exports.csslint    = csslint;
+exports.jslint     = jslint;
 exports.styles     = styles;
 exports.otf2       = otf2;
 exports.tinyImages = tinyImages;

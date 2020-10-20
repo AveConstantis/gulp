@@ -26,6 +26,7 @@ let path_file = {
         styles  : source_folder + '/styles/**/*.scss',
         jscript : source_folder + '/javascript/**/*.js',
         images  : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
+        fonts   : source_folder + '/fonts/**/*.{ttf,otf}'
     },
     cleaner         : './' + project_folder + '/'
 
@@ -232,6 +233,7 @@ function fonts () {
         .pipe(src(path_file.source_version.fonts))
         .pipe(ttf2woff2())
         .pipe(dest(path_file.build_version.fonts))
+        .pipe(browsersync.stream())
 }
 
 
@@ -240,6 +242,7 @@ function watchFiles () {
     gulp.watch([path_file.watch.styles] , styles)
     gulp.watch([path_file.watch.jscript] , javascript)
     gulp.watch([path_file.watch.images] , images)
+    gulp.watch([path_file.watch.fonts], fonts)
 }
 
 

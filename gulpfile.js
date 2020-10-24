@@ -1,32 +1,33 @@
 let project_folder  =  require('path').basename(__dirname),
-    source_folder   = '#source';
+    source_folder   = 'source';
     
 let fs = require('fs');
 
 let path_file = {
 
     build_version   : {
-        html    : project_folder + '/',
-        styles  : project_folder + '/styles/',
-        jscript : project_folder + '/javascript/',
-        images  : project_folder + '/images/',
-        fonts   : project_folder + '/fonts/'
+        html     : project_folder + '/',
+        styles   : project_folder + '/styles/',
+        jscript  : project_folder + '/javascript/',
+        images   : project_folder + '/images/',
+        fonts    : project_folder + '/fonts/'
     },
     source_version  : {
-        html    : source_folder + '/*.html',
-        htmlf   : source_folder + '/html/*.html',
-        styles  : source_folder + '/styles/main.scss',
-        stylesf : [source_folder + '/styles/*.scss', '!' + source_folder + '/styles/normalize.scss'],
-        jscript : source_folder + '/javascript/main.js',
-        images  : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
-        fonts   : source_folder + '/fonts/*.ttf'
+        html     : source_folder + '/*.html',
+        htmlf    : source_folder + '/html/*.html',
+        styles   : source_folder + '/styles/main.scss',
+        stylesf  : [source_folder + '/styles/*.scss', '!' + source_folder + '/styles/normalize.scss'],
+        jscript  : source_folder + '/javascript/main.js',
+        jscriptf : source_folder + '/javascript/*.js', 
+        images   : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
+        fonts    : source_folder + '/fonts/*.ttf'
     },
     watch           : {
-        html    : source_folder + '/**/*.html',
-        styles  : source_folder + '/styles/**/*.scss',
-        jscript : source_folder + '/javascript/**/*.js',
-        images  : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
-        fonts   : source_folder + '/fonts/**/*.{ttf,otf}'
+        html     : source_folder + '/**/*.html',
+        styles   : source_folder + '/styles/**/*.scss',
+        jscript  : source_folder + '/javascript/**/*.js',
+        images   : source_folder + '/images/**/*.{png,jpg,svg,webp,ico,gif}',
+        fonts    : source_folder + '/fonts/**/*.{ttf,otf}'
     },
     cleaner         : './' + project_folder + '/'
 
@@ -107,7 +108,7 @@ function csslint () {
 }
 
 function jslint () {
-    return src(path_file.source_version.jscript)
+    return src(path_file.source_version.jscriptf)
         .pipe(eslint())
         .pipe(eslint.format())
 }
@@ -129,7 +130,8 @@ function styles () {
             level: {
                 1: {
                     all: true,
-                    normalizeUrls: false
+                    normalizeUrls: false,
+                    specialComments: 0,
                 },
                 2: {
                     restructureRules: true
@@ -165,7 +167,6 @@ function javascript () {
                 }]
             },
         }))
-        .pipe(dest(path_file.build_version.jscript))
         .pipe(stripComments())
         .pipe(uglifyES())
         .pipe(rename({
@@ -251,10 +252,10 @@ let watch = gulp.parallel(build, watchFiles, browserReload);
 
 
 exports.html       = html;
+exports.styles     = styles;
 exports.htmllint   = htmllint;
 exports.csslint    = csslint;
 exports.jslint     = jslint;
-exports.styles     = styles;
 exports.otf2       = otf2;
 exports.tinyImages = tinyImages;
 exports.javascript = javascript;
